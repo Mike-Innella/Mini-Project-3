@@ -1,7 +1,11 @@
 import { apiFetch } from './client';
 
-export function getBreweries({ limit } = {}) {
-  const query = limit ? `?limit=${encodeURIComponent(limit)}` : '';
+export function getBreweries({ limit, page, q } = {}) {
+  const params = new URLSearchParams();
+  if (limit) params.set('limit', limit);
+  if (page) params.set('page', page);
+  if (q) params.set('q', q);
+  const query = params.toString() ? `?${params.toString()}` : '';
   return apiFetch(`/breweries${query}`);
 }
 

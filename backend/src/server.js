@@ -10,14 +10,16 @@ async function start() {
   const app = createApp();
   setupSwagger(app);
 
-  if (ENV.SYNC_ON_START) {
-    await syncAllFromExternalAPI();
-  }
-
   app.listen(ENV.PORT, () => {
     console.log(`🚀 http://localhost:${ENV.PORT}`);
     console.log(`📚 Swagger: http://localhost:${ENV.PORT}/api-docs`);
   });
+
+  if (ENV.SYNC_ON_START) {
+    syncAllFromExternalAPI().catch((err) => {
+      console.error("❌ Sync on start failed:", err.message || err);
+    });
+  }
 }
 
 start().catch((err) => {

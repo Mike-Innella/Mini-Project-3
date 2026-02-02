@@ -8,35 +8,68 @@ function sleep(ms) {
 export async function syncAllFromExternalAPI() {
   console.log("🔄 Syncing Open Brewery DB → MongoDB");
 
+  const perPage = 10;
+  const maxPages = 1000;
+  const eastCoastStates = [
+    "Maine",
+    "New Hampshire",
+    "Vermont",
+    "Massachusetts",
+    "Rhode Island",
+    "Connecticut",
+    "New York",
+    "New Jersey",
+    "Pennsylvania",
+    "Delaware",
+    "Maryland",
+    "District of Columbia",
+    "Virginia",
+    "West Virginia",
+    "North Carolina",
+    "South Carolina",
+    "Georgia",
+    "Florida",
+  ];
   let page = 1;
   let total = 0;
 
-  while (true) {
-    const breweries = await fetchBreweries({ perPage: 25, page });
+  // Remove previously synced records so the dataset is refreshed.
+  await Brewery.deleteMany({
+    externalId: { $exists: true },
+  });
+
+  while (page <= maxPages) {
+    const breweries = await fetchBreweries({
+      perPage,
+      page,
+      country: "United States",
+    });
 
     if (!breweries?.length) break;
 
     await Brewery.bulkWrite(
-      breweries.map((b) => ({
-        updateOne: {
-          filter: { externalId: b.id },
-          update: {
-            $set: {
-              externalId: b.id,
-              name: b.name,
-              breweryType: b.brewery_type,
-              city: b.city,
-              state: b.state,
-              country: b.country,
-              websiteUrl: b.website_url,
+      breweries
+        .filter((b) => eastCoastStates.includes(b.state))
+        .map((b) => ({
+          updateOne: {
+            filter: { externalId: b.id },
+            update: {
+              $set: {
+                externalId: b.id,
+                name: b.name,
+                breweryType: b.brewery_type,
+                city: b.city,
+                state: b.state,
+                country: b.country,
+                websiteUrl: b.website_url,
+              },
             },
+            upsert: true,
           },
-          upsert: true,
-        },
-      }))
+        }))
     );
 
-    total += breweries.length;
+    total += breweries.filter((b) => eastCoastStates.includes(b.state)).length;
     page += 1;
     await sleep(300);
   }

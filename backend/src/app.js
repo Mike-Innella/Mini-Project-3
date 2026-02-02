@@ -14,6 +14,19 @@ export function createApp() {
   app.use(express.json());
   app.use(morgan("dev"));
 
+  app.get("/", (req, res) =>
+    res.json({
+      ok: true,
+      message: "Mini-Project 3 API is running.",
+      routes: {
+        health: "/health",
+        breweries: "/breweries",
+        sync: "/sync",
+        docs: "/api-docs",
+      },
+    })
+  );
+
   app.get("/health", (req, res) => res.json({ ok: true }));
 
   app.use("/breweries", breweriesRoutes);

@@ -27,9 +27,12 @@ const router = Router();
  *       - in: query
  *         name: limit
  *         schema: { type: number }
+ *       - in: query
+ *         name: page
+ *         schema: { type: number }
  *     responses:
  *       200:
- *         description: Array of breweries
+ *         description: Paginated breweries
  */
 router.get("/", listBreweries);
 

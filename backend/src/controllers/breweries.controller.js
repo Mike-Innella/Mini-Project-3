@@ -14,7 +14,7 @@ const updateSchema = createSchema.partial();
 
 export async function listBreweries(req, res, next) {
   try {
-    const { state, city, q, limit = 25 } = req.query;
+    const { state, city, q, limit = 25, page = 1 } = req.query;
 
     const filter = {};
     if (state) filter.state = state;
@@ -24,11 +24,25 @@ export async function listBreweries(req, res, next) {
       filter.$or = [{ name: re }, { city: re }, { state: re }, { country: re }];
     }
 
-    const breweries = await Brewery.find(filter)
-      .limit(Number(limit))
-      .sort({ createdAt: -1 });
+    const pageSize = Math.max(1, Number(limit));
+    const currentPage = Math.max(1, Number(page));
+    const skip = (currentPage - 1) * pageSize;
 
-    res.json(breweries);
+    const [total, breweries] = await Promise.all([
+      Brewery.countDocuments(filter),
+      Brewery.find(filter)
+        .limit(pageSize)
+        .skip(skip)
+        .sort({ name: 1 }),
+    ]);
+
+    res.json({
+      data: breweries,
+      page: currentPage,
+      pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    });
   } catch (e) {
     next(e);
   }

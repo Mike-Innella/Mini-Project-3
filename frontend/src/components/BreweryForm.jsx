@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Box, Button, Stack, TextField, Alert } from '@mui/material';
 
 const emptyValues = {
   name: '',
@@ -29,7 +30,10 @@ function BreweryForm({
         state: initialValues.state || '',
         country: initialValues.country || '',
         websiteUrl:
-          initialValues.websiteUrl || initialValues.website_url || initialValues.website || '',
+          initialValues.websiteUrl ||
+          initialValues.website_url ||
+          initialValues.website ||
+          '',
       });
     } else {
       setValues(emptyValues);
@@ -60,87 +64,72 @@ function BreweryForm({
   }
 
   return (
-    <form className="brewery-form" onSubmit={handleSubmit}>
-      {error && <div className="form-error">{error}</div>}
-      <label>
-        Name *
-        <input
-          type="text"
+    <Box component="form" onSubmit={handleSubmit} noValidate>
+      <Stack spacing={2}>
+        {error ? <Alert severity="warning">{error}</Alert> : null}
+        <TextField
+          label="Name"
           name="name"
           value={values.name}
           onChange={handleChange}
           placeholder="Brewery name"
           required
+          fullWidth
         />
-      </label>
-      <label>
-        Type
-        <input
-          type="text"
+        <TextField
+          label="Type"
           name="breweryType"
           value={values.breweryType}
           onChange={handleChange}
           placeholder="micro, brewpub, etc."
+          fullWidth
         />
-      </label>
-      <label>
-        City
-        <input
-          type="text"
+        <TextField
+          label="City"
           name="city"
           value={values.city}
           onChange={handleChange}
           placeholder="City"
+          fullWidth
         />
-      </label>
-      <label>
-        State
-        <input
-          type="text"
+        <TextField
+          label="State"
           name="state"
           value={values.state}
           onChange={handleChange}
           placeholder="State"
+          fullWidth
         />
-      </label>
-      <label>
-        Country
-        <input
-          type="text"
+        <TextField
+          label="Country"
           name="country"
           value={values.country}
           onChange={handleChange}
           placeholder="Country"
+          fullWidth
         />
-      </label>
-      <label>
-        Website
-        <input
-          type="text"
+        <TextField
+          label="Website"
           name="websiteUrl"
           value={values.websiteUrl}
           onChange={handleChange}
           placeholder="https://"
+          fullWidth
         />
-      </label>
-      <div className="form-actions">
-        <button
-          className="button ghost"
-          type="button"
-          onClick={onCancel}
-          disabled={isWorking}
-        >
-          Cancel
-        </button>
-        <button className="button" type="submit" disabled={isWorking}>
-          {isWorking
-            ? 'Saving...'
-            : mode === 'edit'
-            ? 'Save Changes'
-            : 'Create Brewery'}
-        </button>
-      </div>
-    </form>
+        <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
+          <Button variant="outlined" onClick={onCancel} disabled={isWorking}>
+            Cancel
+          </Button>
+          <Button variant="contained" type="submit" disabled={isWorking}>
+            {isWorking
+              ? 'Saving...'
+              : mode === 'edit'
+              ? 'Save Changes'
+              : 'Create Brewery'}
+          </Button>
+        </Stack>
+      </Stack>
+    </Box>
   );
 }
 

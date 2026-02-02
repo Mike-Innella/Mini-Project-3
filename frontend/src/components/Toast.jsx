@@ -1,25 +1,24 @@
-import { useEffect } from 'react';
+import { Alert, Snackbar } from '@mui/material';
 
 function Toast({ toast, onClose }) {
-  useEffect(() => {
-    if (!toast) return undefined;
-
-    const timer = setTimeout(() => {
-      onClose();
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [toast, onClose]);
-
-  if (!toast) return null;
-
   return (
-    <div className={`toast ${toast.type || 'info'}`}>
-      <span>{toast.message}</span>
-      <button type="button" onClick={onClose} aria-label="Close toast">
-        x
-      </button>
-    </div>
+    <Snackbar
+      open={Boolean(toast)}
+      autoHideDuration={2500}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    >
+      {toast ? (
+        <Alert
+          onClose={onClose}
+          severity={toast.type || 'info'}
+          variant="filled"
+          sx={{ fontWeight: 600 }}
+        >
+          {toast.message}
+        </Alert>
+      ) : null}
+    </Snackbar>
   );
 }
 

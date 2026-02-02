@@ -9,14 +9,18 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchBreweries({ perPage = 50, page = 1 } = {}) {
+export async function fetchBreweries({ perPage = 50, page = 1, country } = {}) {
   const maxRetries = 3;
   let attempt = 0;
 
   while (true) {
     try {
+      const params = { per_page: perPage, page };
+      if (country) {
+        params.by_country = country;
+      }
       const { data } = await client.get("/breweries", {
-        params: { per_page: perPage, page },
+        params,
       });
       return data;
     } catch (error) {

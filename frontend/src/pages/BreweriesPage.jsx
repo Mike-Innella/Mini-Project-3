@@ -1,5 +1,19 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  TextField,
+  Typography,
+  Alert,
+  Paper,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import {
   createBrewery,
   deleteBrewery,
   getBreweries,
@@ -18,20 +32,29 @@ function BreweriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+  const [totalPages, setTotalPages] = useState(1);
   const [selected, setSelected] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [isWorking, setIsWorking] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
 
   async function loadBreweries() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getBreweries();
+      const data = await getBreweries({
+        limit: pageSize,
+        page,
+        q: search.trim() || undefined,
+      });
       const list = Array.isArray(data)
         ? data
         : data?.breweries || data?.data || [];
       setBreweries(list);
+      setTotalPages(data?.totalPages || 1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -40,8 +63,17 @@ function BreweriesPage() {
   }
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
     loadBreweries();
-  }, []);
+  }, [page, search]);
 
   function openCreateModal() {
     setSelected(null);
@@ -123,75 +155,151 @@ function BreweriesPage() {
     }
   }
 
-  const filteredBreweries = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return breweries;
-    return breweries.filter((brewery) => {
-      const fields = [
-        brewery.name,
-        brewery.city,
-        brewery.state,
-        brewery.country,
-        brewery.breweryType || brewery.brewery_type,
-      ];
-      return fields.some((field) =>
-        field ? field.toString().toLowerCase().includes(term) : false
-      );
-    });
-  }, [breweries, search]);
+  const filteredBreweries = useMemo(() => breweries, [breweries]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
-    <div className="page">
-      <div className="topbar">
-        <div>
-          <p className="eyebrow">Breweries Admin</p>
-          <h1>Manage breweries</h1>
-        </div>
-        <div className="topbar-actions">
-          <input
-            type="text"
-            placeholder="Search breweries"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <button
-            className="button ghost"
-            type="button"
-            onClick={handleSync}
-            disabled={isWorking}
-          >
-            {isWorking ? 'Syncing...' : 'Sync from API'}
-          </button>
-          <button
-            className="button"
-            type="button"
-            onClick={openCreateModal}
-            disabled={isWorking}
-          >
-            {isWorking ? 'Please wait...' : 'New Brewery'}
-          </button>
-          {isWorking && <Spinner label="Working..." size="sm" />}
-        </div>
-      </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Stack spacing={3}>
+        <Paper variant="outlined" sx={{ p: 3 }}>
+          <Stack spacing={2}>
+            <Box>
+              <Typography className="eyebrow">Breweries Admin</Typography>
+              <Typography variant="h1">East Coast Breweries</Typography>
+              <Typography color="text.secondary">
+                US East Coast breweries (up to 10,000 synced)
+              </Typography>
+            </Box>
+            <Stack spacing={2}>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={1.5}
+                justifyContent="flex-end"
+                alignItems={{ xs: 'stretch', md: 'center' }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={() => setSearchInput('')}
+                  disabled={!searchInput}
+                  sx={{ minWidth: 160 }}
+                >
+                  Clear Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleSync}
+                  disabled={isWorking}
+                  sx={{ minWidth: 160 }}
+                >
+                  {isWorking ? 'Syncing...' : 'Sync from API'}
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={openCreateModal}
+                  disabled={isWorking}
+                  sx={{ minWidth: 160 }}
+                >
+                  {isWorking ? 'Please wait...' : 'New Brewery'}
+                </Button>
+                {isWorking ? <Spinner label="Working..." size="sm" /> : null}
+              </Stack>
+              <TextField
+                label="Search"
+                placeholder="Search breweries"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                fullWidth
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip title="Click to search">
+                        <span>
+                          <IconButton
+                            edge="end"
+                            onClick={() => setSearch(searchInput)}
+                            aria-label="Click to search"
+                          >
+                            <SearchIcon />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Stack>
+          </Stack>
+        </Paper>
 
-      {loading && (
-        <div className="loading">
-          <Spinner label="Loading breweries..." size="lg" />
-        </div>
-      )}
-      {error && <div className="error-banner">{error}</div>}
+        {loading ? (
+          <Paper variant="outlined" sx={{ p: 3 }}>
+            <Spinner label="Loading breweries..." size="lg" />
+          </Paper>
+        ) : null}
 
-      {!loading && (
-        <Suspense fallback={<Spinner label="Loading table..." />}>
-          <BreweryTable
-            items={filteredBreweries}
-            onEdit={openEditModal}
-            onDelete={handleDelete}
-          />
-        </Suspense>
-      )}
+        {error ? <Alert severity="error">{error}</Alert> : null}
 
-      {isModalOpen && (
+        {!loading ? (
+          <Stack spacing={2}>
+            <Suspense fallback={<Spinner label="Loading table..." />}>
+              <BreweryTable
+                items={filteredBreweries}
+                onEdit={openEditModal}
+                onDelete={handleDelete}
+              />
+            </Suspense>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              alignItems={{ xs: 'stretch', sm: 'center' }}
+              justifyContent="space-between"
+            >
+              <Typography color="text.secondary">
+                Page {page} of {totalPages}
+              </Typography>
+              <Stack direction="row" spacing={1.5} justifyContent="flex-end">
+                <Button
+                  variant="outlined"
+                  onClick={() => setPage(1)}
+                  disabled={page <= 1}
+                >
+                  First
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={page <= 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={page >= totalPages}
+                >
+                  Next
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setPage(totalPages)}
+                  disabled={page >= totalPages}
+                >
+                  Last
+                </Button>
+              </Stack>
+            </Stack>
+          </Stack>
+        ) : null}
+      </Stack>
+
+      {isModalOpen ? (
         <Suspense fallback={<Spinner label="Loading form..." />}>
           <Modal
             title={selected ? 'Edit Brewery' : 'New Brewery'}
@@ -210,10 +318,10 @@ function BreweriesPage() {
             />
           </Modal>
         </Suspense>
-      )}
+      ) : null}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
-    </div>
+    </Container>
   );
 }
 

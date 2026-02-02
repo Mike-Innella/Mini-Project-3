@@ -1,79 +1,73 @@
-# Mini-Project #3: Database & Backend API Integration
+# Mini-Project 3 – Brewery Sync (Backend + Frontend)
 
 ## Overview
 
-This project is designed to consolidate the material learned in **Modules 8 and 9** regarding the use of databases. The primary goal is to create a real-time database that functions by fetching data externally via an API.
+A full-stack mini project that syncs brewery data from Open Brewery DB into MongoDB and provides a React (Vite) admin UI for browsing, searching, and CRUD operations. The backend follows MVC architecture and exposes a Swagger UI for API documentation.
 
-Unlike previous projects, a front-end interface is not strictly required; functionality should be demonstrated via backend tools.
+## Current Scope
 
-## Timeframe & Workload
+- **Sync source:** Open Brewery DB
+- **Dataset:** US East Coast breweries only
+- **Sync cap:** Up to 10,000 records
+- **Pagination:** Server-side (`limit` + `page`)
+- **Search:** Server-side (`q`)
 
-- **Duration:** You should aim for **8–10 hours** of work.
-- **Deadline:** This project is assigned at the end of **Module 9**.
-- **Planning:** Spending more than 10 hours suggests over-complication, while significantly less may indicate a lack of depth in showcasing required skills.
+## Repo Structure
 
-## Technical Requirements
+```
+backend/   Express + MongoDB API
+frontend/  Vite + React UI
+```
 
-Your application must adhere to the following technical specifications:
+## Getting Started
 
-- **Architecture:** The project must follow the **MVC (Model-View-Controller)** model.
-- **Data Integration:** Include a start-up routine that initially fetches data from an external API and populates your database.
+### 1) Backend
 
-- **Database Structure:** Your database structure should reflect the structure of the data returned from the external API.
-- **Functionality:** All **CRUD (Create, Read, Update, Delete)** operations must be included.
-- **Demonstration:** As a front-end is not required, you must demonstrate your application's functionality using **Postman** or **Swagger**.
+```
+cd backend
+npm install
+npm run dev
+```
 
-## Project Process
+Backend runs at `http://localhost:3000` and auto-syncs on startup (non-blocking).
 
-1. **Design Phase:** Before writing code, you must document the functionality, user capabilities, and visual layout (if applicable). You must include design and requirements specifications.
-2. **Implementation:** Build the application aiming for the 8-10 hour window.
+### 2) Frontend
 
-## Project Options
+```
+cd frontend
+npm install
+npm run dev
+```
 
-Choose **one** of the following paths for your application content:
+Frontend runs at `http://localhost:5173`.
 
-### Option 1: Project Continuation
+### Optional: Run both
 
-Continue building out the project you have been working on for the previous Mini-Projects (#1 and #2). Extend its backend capabilities to meet the technical requirements above.
+```
+cd frontend
+npm run dev:all
+```
 
-### Option 2: Real-World Application
+## API Endpoints
 
-Find a person, company, or website that desperately needs a new or modernized website/backend. Offer to build it for them.
+- `GET /breweries?limit=50&page=1&q=search`
+- `GET /breweries/:id`
+- `POST /breweries`
+- `PUT /breweries/:id`
+- `DELETE /breweries/:id`
+- `POST /sync`
 
-> [!NOTE] 
-> This option may take more time and planning, but offers meaningful learning in client communication, requirements gathering, and professional delivery.
+## Frontend Features
 
-## Presentation Guidelines
+- East Coast breweries list
+- Server-side pagination (50 per page)
+- Server-side search
+- Create/Edit/Delete breweries
+- Manual sync button
+- Loading states and toast notifications
 
-You will give a **5–10 minute presentation** to trainers and students. You must demonstrate what the application does, how it works, and the code used to implement it.
+## Notes
 
-**Be prepared to answer the following questions:**
-
-1. What was your requirements gathering and design process? Was it useful/successful? 
-2. Give a high-level overview of your application and its features. 
-3. Where does the data come from (which external API)? 
-4. How is this data inserted into your database? 
-5. How is the data structured (into tables or collections)? 
-6. How is the application code structured (MVC model)? 
-7. Does your application cover all 4 CRUD operations? How? 
-8. How might using a database instead of an external API directly benefit an application? 
-9. How might you extend the features of your application in the future? 
-
-## Grading Criteria
-
-| Score | Criteria |
-| --- | --- |
-| **10** | **Excellent:** Fully functional, original application that meets all objectives, uses well-structured code, and includes strong evidence of design/requirements planning. |
-| **8/9** | **Great:** Mostly functional application covering main objectives, with tidy code and clear evidence of planning. |
-| **7** | **Satisfactory:** Minimal planning/design; application includes core features with some attempts at well-structured code. |
-| **≤ 6** | **Needs Improvement:** Reliance on code copied from elsewhere, important features incomplete, mostly messy/unstructured code, and no design process. |
-
----
-
-### Grading Components breakdown:
-
-- **Evidence of design/requirements:** Figma, hand-drawn diagrams, or bulleted lists created prior to coding.
-- **Functionality:** Original application covering required objectives with good usability.
-- **Coding:** Code is tidy, logical, well-structured, and avoids repetition.
-
----
+- Local breweries created in the UI do **not** have `externalId`.
+- Sync runs with rate-limit backoff and may take time for large datasets.
+- CORS is enabled in the backend for local development.
