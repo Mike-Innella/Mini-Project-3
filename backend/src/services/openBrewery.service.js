@@ -5,9 +5,9 @@ const client = axios.create({
   timeout: 15000,
 });
 
-export async function fetchBreweries() {
+export async function fetchBreweries({ perPage = 50, page = 1 } = {}) {
   const { data } = await client.get("/breweries", {
-    params: { per_page: 50 },
+    params: { per_page: perPage, page },
   });
   return data;
 }

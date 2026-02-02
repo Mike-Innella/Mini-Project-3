@@ -16,10 +16,7 @@ export function createApp() {
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 
-  // Open Brewery DB routes
   app.use("/breweries", breweriesRoutes);
-
-  // External API sync route
   app.use("/sync", syncRoutes);
 
   app.use(notFound);

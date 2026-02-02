@@ -10,12 +10,19 @@ const createSchema = z.object({
   websiteUrl: z.string().url().optional(),
 });
 
+const updateSchema = createSchema.partial();
+
 export async function listBreweries(req, res, next) {
   try {
-    const { state, city, limit = 25 } = req.query;
+    const { state, city, q, limit = 25 } = req.query;
+
     const filter = {};
     if (state) filter.state = state;
     if (city) filter.city = city;
+    if (q) {
+      const re = new RegExp(q, "i");
+      filter.$or = [{ name: re }, { city: re }, { state: re }, { country: re }];
+    }
 
     const breweries = await Brewery.find(filter)
       .limit(Number(limit))
@@ -30,7 +37,7 @@ export async function listBreweries(req, res, next) {
 export async function getBrewery(req, res, next) {
   try {
     const brewery = await Brewery.findById(req.params.id);
-    if (!brewery) return res.status(404).json({ message: "Not found" });
+    if (!brewery) return res.status(404).json({ message: "Brewery not found" });
     res.json(brewery);
   } catch (e) {
     next(e);
@@ -40,7 +47,7 @@ export async function getBrewery(req, res, next) {
 export async function createBrewery(req, res, next) {
   try {
     const payload = createSchema.parse(req.body);
-    const brewery = await Brewery.create(payload);
+    const brewery = await Brewery.create(payload); // local record (no externalId)
     res.status(201).json(brewery);
   } catch (e) {
     next(e);
@@ -49,13 +56,15 @@ export async function createBrewery(req, res, next) {
 
 export async function updateBrewery(req, res, next) {
   try {
-    const payload = createSchema.partial().parse(req.body);
+    const payload = updateSchema.parse(req.body);
+
     const brewery = await Brewery.findByIdAndUpdate(
       req.params.id,
       { $set: payload },
       { new: true }
     );
-    if (!brewery) return res.status(404).json({ message: "Not found" });
+
+    if (!brewery) return res.status(404).json({ message: "Brewery not found" });
     res.json(brewery);
   } catch (e) {
     next(e);
@@ -65,7 +74,7 @@ export async function updateBrewery(req, res, next) {
 export async function deleteBrewery(req, res, next) {
   try {
     const brewery = await Brewery.findByIdAndDelete(req.params.id);
-    if (!brewery) return res.status(404).json({ message: "Not found" });
+    if (!brewery) return res.status(404).json({ message: "Brewery not found" });
     res.json({ message: "Deleted", id: req.params.id });
   } catch (e) {
     next(e);
