@@ -14,4 +14,5 @@ const brewerySchema = new mongoose.Schema(
 );
 
 const Brewery = mongoose.model("Brewery", brewerySchema);
+
 export default Brewery;

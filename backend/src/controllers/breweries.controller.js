@@ -7,7 +7,7 @@ const createSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   country: z.string().optional(),
-  websiteUrl: z.string().url().optional(),
+  websiteUrl: z.string().optional(),
 });
 
 const updateSchema = createSchema.partial();
