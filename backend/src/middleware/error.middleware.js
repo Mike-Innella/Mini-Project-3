@@ -7,6 +7,11 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
+  // Mongoose bad ObjectId
+  if (err?.name === "CastError") {
+    return res.status(400).json({ message: "Invalid ID format" });
+  }
+
   console.error(err);
   res.status(500).json({ message: "Server error" });
 }
