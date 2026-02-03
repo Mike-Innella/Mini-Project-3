@@ -3,12 +3,17 @@ import { connectDB } from "./config/db.js";
 import { createApp } from "./app.js";
 import { setupSwagger } from "./swagger.js";
 import { syncAllFromExternalAPI } from "./services/sync.service.js";
+import { notFound } from "./middleware/notFound.middleware.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 async function start() {
   await connectDB(ENV.MONGO_URI);
 
   const app = createApp();
   setupSwagger(app);
+  app.get("/api/api-docs", (req, res) => res.redirect("/api-docs"));
+  app.use(notFound);
+  app.use(errorHandler);
 
   app.listen(ENV.PORT, () => {
     console.log(`🚀 http://localhost:${ENV.PORT}`);
